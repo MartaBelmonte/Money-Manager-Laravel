@@ -13,12 +13,13 @@
                 <h1 class="card-title">Lista de Transacciones Realizadas</h1>
                 <a href="{{ route('transactions.create') }}" class="btn btn-primary mb-3">Crear Transacción</a>
                 @if(count($transactions) > 0)
-                    <div class="table-responsive">
+                    <div>
                         <table class="table table-striped">
                             <thead>
                                 <tr>
-                                    <th>Amount</th>
-                                    <th>Category</th>
+                                    <th>Cantidad</th>
+                                    <th>Categoria</th>
+                                    <th>Tipo de Transferencia</th>
                                     <th>Acciones</th>
                                 </tr>
                             </thead>
@@ -27,12 +28,13 @@
                                     <tr>
                                         <td>{{ $transaction->amount }}</td>
                                         <td>{{ $transaction->category }}</td>
+                                        <td>{{ $transaction->transfer_type }}</td>
                                         <td>
                                             <div class="dropdown">
-                                                <button class="btn btn-secondary dropdown-toggle" type="button" id="actionsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                                <button class="btn btn-secondary dropdown-toggle" type="button" id="actionsDropdown{{ $transaction->id }}" data-bs-toggle="dropdown" aria-expanded="false">
                                                     Acciones
                                                 </button>
-                                                <ul class="dropdown-menu" aria-labelledby="actionsDropdown">
+                                                <ul class="dropdown-menu" aria-labelledby="actionsDropdown{{ $transaction->id }}">
                                                     <li><a class="dropdown-item" href="{{ route('transactions.show', $transaction->id) }}">Ver Detalles</a></li>
                                                     <li><a class="dropdown-item" href="{{ route('transactions.edit', $transaction->id) }}">Editar</a></li>
                                                     <li>
@@ -61,3 +63,4 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+

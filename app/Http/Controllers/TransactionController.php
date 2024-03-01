@@ -90,9 +90,5 @@ class TransactionController extends Controller
     return redirect('/transactions')->with('success', '¡Transacción eliminada con éxito!');
     }
 
-    public function confirmDelete($id) {
-    $transaction = Transaction::findOrFail($id);
-    return view('delete', ['transaction' => $transaction]);
-}
 }
 

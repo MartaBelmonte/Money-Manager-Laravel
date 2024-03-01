@@ -27,6 +27,6 @@ Route::put('/transactions/{id}', [TransactionController::class, 'update'])->name
 
 // Ruta para eliminar una transacción
 Route::delete('/transactions/{id}', [TransactionController::class, 'delete'])->name('transactions.delete');
-Route::get('/transactions/{id}/delete', [TransactionController::class, 'confirmDelete'])->name('transactions.confirmDelete');
+
 
 
