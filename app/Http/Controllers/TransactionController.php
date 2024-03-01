@@ -26,12 +26,14 @@ class TransactionController extends Controller
     $request->validate([
         'amount' => 'required|numeric',
         'category' => 'required',
+        'transfer_type' => 'required',
     ]);
 
     // Crea una nueva instancia de Transaction
     $transaction = new Transaction();
     $transaction->amount = $request->amount;
     $transaction->category = $request->category;
+    $transaction->transfer_type = $request->transfer_type;
     $transaction->date = now();
 
     // Asigna una descripción basada en la cantidad y la categoría

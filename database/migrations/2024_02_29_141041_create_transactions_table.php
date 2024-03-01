@@ -16,7 +16,6 @@ return new class extends Migration
             $table->decimal('amount', 10, 2);
             $table->string('category');
             $table->enum('type', ['income', 'expense']);
-            $table->string('transfer_type')->nullable(); 
         });
     }
 
@@ -24,5 +23,6 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('transactions');
+        
     }
 };
