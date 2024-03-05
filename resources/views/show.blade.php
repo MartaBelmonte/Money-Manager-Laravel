@@ -18,6 +18,13 @@
                         <p><strong>Fecha:</strong> {{ $transaction->date }}</p>
                         <p><strong>Cantidad:</strong> {{ $transaction->amount }}</p>
                         <p><strong>Categoría:</strong> {{ $transaction->category }}</p>
+                        <p><strong>Tipo de Transferencia:</strong> {{ $transaction->transfer_type }}</p>
+                        <h2 class="card-title">Desglose transacciones</h2>
+                        @foreach($details as $detail)
+                            <h5><strong>Descripción:</strong> {{ $detail->item_name }}</h5>
+                            <p><strong>Cantidad de productos:</strong> {{ $detail->quantity }}</p>
+                            <p><strong>Precio Unitario:</strong> {{ $detail->unit_price }}</p>
+                        @endforeach
                     </div>
                 </div>
             </div>

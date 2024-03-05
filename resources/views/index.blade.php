@@ -17,8 +17,9 @@
                         <table class="table table-striped">
                             <thead>
                                 <tr>
-                                    <th>Cantidad</th>
-                                    <th>Categoria</th>
+                                    <th>Nombre Completo</th>
+                                    <th>Cantidad Total</th>
+                                    <th>Categoría</th>
                                     <th>Tipo de Transferencia</th>
                                     <th>Acciones</th>
                                 </tr>
@@ -26,6 +27,7 @@
                             <tbody>
                                 @foreach ($transactions as $transaction)
                                     <tr>
+                                        <td>{{ $transaction->full_name }}</td>
                                         <td>{{ $transaction->amount }}</td>
                                         <td>{{ $transaction->category }}</td>
                                         <td>{{ $transaction->transfer_type }}</td>
@@ -63,4 +65,3 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
-

@@ -4,15 +4,44 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Transaction;
+use App\Models\TransactionDetail;
 
 class TransactionController extends Controller
 {
-    // Mostrar la lista de transacciones
     public function index()
-    {
-        $transactions = Transaction::all();
-        return view('index', ['transactions' => $transactions]);
+{
+    // Obtener todas las transacciones con sus detalles, usuario asociado y la suma de precios unitarios y cantidad total
+    $transactions = Transaction::with(['details', 'user'])->get();
+    
+    // Array para almacenar la suma de los precios unitarios por ID de transacción
+    $totalAmounts = [];
+
+    // Calcular la suma de los precios unitarios y la cantidad total para cada transacción
+    foreach ($transactions as $transaction) {
+        // Obtener los detalles de la transacción
+        $details = TransactionDetail::where('transaction_id', $transaction->id)->get();
+
+        // Inicializar la suma de precios unitarios y cantidad total para esta transacción
+        $totalAmount = 0;
+        $totalQuantity = 0;
+
+        // Sumar los precios unitarios y la cantidad de los detalles de la transacción, si hay detalles disponibles
+        if ($details->isNotEmpty()) {
+            foreach ($details as $detail) {
+                $totalAmount += $detail->unit_price * $detail->quantity; // Corrección aquí
+                $totalQuantity += $detail->quantity;
+            }
+        }
+
+        // Almacenar la suma en el array
+        $totalAmounts[$transaction->id] = $totalAmount;
+        $transaction->totalQuantity = $totalQuantity;
     }
+
+    // Pasar los datos a la vista
+    return view('index', compact('transactions'));
+}
+
 
     // Mostrar el formulario para crear una nueva transacción
     public function create()
@@ -27,70 +56,93 @@ class TransactionController extends Controller
         'amount' => 'required|numeric',
         'category' => 'required',
         'transfer_type' => 'required',
+        'details.*.item_name' => 'required',
+        'details.*.quantity' => 'required|numeric|min:1',
+        'details.*.unit_price' => 'required|numeric|min:0',
     ]);
 
-    // Crea una nueva instancia de Transaction
+    // Crear una nueva instancia de Transaction
     $transaction = new Transaction();
-    $transaction->amount = $request->amount;
+    $transaction->amount = $request->input('amount', 0);
     $transaction->category = $request->category;
     $transaction->transfer_type = $request->transfer_type;
     $transaction->date = now();
 
-    // Asigna una descripción basada en la cantidad y la categoría
-    $description = 'Transacción de ' . $request->amount . ' en la categoría ' . $request->category;
-    $transaction->description = $description;
-
-    // Guarda la transacción en la base de datos
+    // Guardar la transacción en la base de datos
     $transaction->save();
 
-    // Redirecciona a la página principal con un mensaje de éxito
+    // Guardar los detalles de la transacción si se proporcionaron y son válidos
+    if ($request->filled('details') && is_array($request->details)) {
+        foreach ($request->details as $detail) {
+            // Guardar detalles de la transacción con la transacción principal
+            $transactionDetail = new TransactionDetail();
+            $transactionDetail->transaction_id = $transaction->id; // Asociar con la transacción principal
+            $transactionDetail->item_name = $detail['item_name'];
+            $transactionDetail->quantity = $detail['quantity'];
+            $transactionDetail->unit_price = $detail['unit_price'];
+            $transactionDetail->save();
+        }
+    }
+
+    // Redireccionar a la página principal con un mensaje de éxito
     return redirect('/')->with('success', '¡Transacción creada con éxito!');
-    }
+}
 
-    // Mostrar una transacción específica
-    public function show($id) {
-        // Encuentra la transacción por su ID
-        $transaction = Transaction::findOrFail($id);
+    // Mostrar el formulario para editar una transacción
+    public function edit($id)
+{
+    $transaction = Transaction::find($id);
+    $details = TransactionDetail::where('transaction_id', $transaction->id)->get(); 
 
-        // Retornar la vista para mostrar la transacción
-        return view('show', compact('transaction'));
-    }
+    return view('edit', ['transaction' => $transaction, 'details' => $details]);
+}
 
-    public function edit($id) {
-        // Encuentra la transacción por su ID
-        $transaction = Transaction::findOrFail($id);
 
-        // Retornar la vista para editar la transacción
-        return view('edit', compact('transaction'));
-    }
-
-    // Actualizar una transacción específica en la base de datos
-    public function update(Request $request, $id) {
-    // Valida los datos del formulario
-    $request->validate([
-        'amount' => 'required|numeric',
-        'category' => 'required',
-    ]);
-
+   // Actualizar una transacción específica en la base de datos
+public function update(Request $request, $id)
+{
     // Encuentra la transacción por su ID
     $transaction = Transaction::findOrFail($id);
-    $transaction->amount = $request->amount;
-    $transaction->category = $request->category;
 
-    $transaction->save();
+    // Actualiza la transacción principal
+    $transaction->update($request->except('details'));
 
-    // Redirecciona a la página principal 
-    return redirect('/')->with('success', '¡Transacción actualizada con éxito!');
+    // Actualiza los detalles de la transacción si se proporcionan datos de detalle
+    if ($request->filled('details')) {
+        foreach ($request->details as $detailId => $detailData) {
+            $detail = TransactionDetail::findOrFail($detailId);
+            $detail->update($detailData);
+        }
     }
+
+    // Establece el mensaje de sesión flash solo si se actualiza exitosamente
+    session()->flash('status', 'Los cambios se han guardado correctamente.');
+
+    // Redirecciona a la página de edición con el mensaje de éxito
+    return redirect()->route('transactions.edit', $id);
+}
+
+
+    //Mostrar transaccion
+    public function show($id)
+{
+    // Encuentra la transacción por su ID
+    $transaction = Transaction::findOrFail($id);
+
+    // Cargar los detalles de la transacción
+    $details = TransactionDetail::where('transaction_id', $transaction->id)->get();
+
+    // Retornar la vista para mostrar los detalles de la transacción
+    return view('show', compact('transaction', 'details'));
+}
+
 
     // Eliminar una transacción 
     public function delete($id)
     {
-    $transaction = Transaction::findOrFail($id);
-    $transaction->delete();
+        $transaction = Transaction::findOrFail($id);
+        $transaction->delete();
 
-    return redirect('/transactions')->with('success', '¡Transacción eliminada con éxito!');
+        return redirect('/transactions')->with('success', '¡Transacción eliminada con éxito!');
     }
-
 }
-
