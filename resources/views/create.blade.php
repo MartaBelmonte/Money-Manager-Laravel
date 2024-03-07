@@ -45,18 +45,19 @@
 
             addDetailButton.addEventListener('click', function () {
                 const detail = `
-                    <div class="form-row mt-3">
-                        <div class="col">
-                            <input type="text" name="item_name[]" class="form-control" placeholder="Nombre del ítem">
-                        </div>
-                        <div class="col">
-                            <input type="number" name="quantity[]" class="form-control" placeholder="Cantidad" value="Cantidad producto">
-                        </div>
-                        <div class="col">
-                            <input type="number" name="unit_price[]" class="form-control" placeholder="Precio Unitario" value="Importe">
-                        </div>
-                    </div>
-                `;
+    <div class="form-row mt-3">
+        <div class="col">
+            <input type="text" name="item_name[]" class="form-control" placeholder="Nombre del ítem">
+        </div>
+        <div class="col">
+            <input type="number" name="quantity[]" class="form-control" placeholder="Cantidad">
+        </div>
+        <div class="col">
+            <input type="number" name="unit_price[]" class="form-control" placeholder="Precio Unitario">
+        </div>
+    </div>
+`;
+
                 detailsContainer.insertAdjacentHTML('beforeend', detail);
                 updateTotalAmount();
             });
@@ -76,6 +77,7 @@
                         totalAmount += quantity * price;
                     }
                 });
+                console.log("Total amount:", totalAmount);
                 document.getElementById('amount').value = totalAmount.toFixed(2);
             }
         });

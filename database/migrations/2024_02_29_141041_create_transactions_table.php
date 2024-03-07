@@ -15,7 +15,7 @@ return new class extends Migration
             $table->string('description')->nullable();
             $table->decimal('amount', 10, 2);
             $table->string('category');
-            $table->enum('type', ['income', 'expense']);
+            $table->string('type')->default('');
         });
     }
 
