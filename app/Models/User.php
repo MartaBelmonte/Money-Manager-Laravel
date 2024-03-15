@@ -9,8 +9,6 @@ class User extends Model
 {
     use HasFactory;
 
-    // Otros atributos y métodos de tu modelo User
-
     public function transactions()
     {
         return $this->hasMany(Transaction::class);

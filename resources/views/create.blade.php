@@ -14,16 +14,24 @@
                 <form action="{{ route('transactions.store') }}" method="POST">
                     @csrf
                     <div class="form-group">
-                        <label for="amount">Monto:</label>
+                        <label for="amount">Total:</label>
                         <input type="text" name="amount" id="amount" class="form-control" value="{{ old('amount') }}">
                     </div>
                     <div class="form-group">
                         <label for="category">Categoría:</label>
-                        <input type="text" name="category" id="category" class="form-control" value="{{ old('category') }}">
+                        <select name="category" id="category" class="form-control">
+                            <option value="ocio">Ocio</option>
+                            <option value="trabajo">Trabajo</option>
+                            <option value="hosteleria">Hosteleria</option>
+                        </select>
                     </div>
                     <div class="form-group">
                         <label for="transfer_type">Tipo de Transferencia:</label>
-                        <input type="text" name="transfer_type" id="transfer_type" class="form-control" value="{{ old('transfer_type') }}">
+                        <select name="transfer_type" id="transfer_type" class="form-control">
+                            <option value="transferencia_bancaria">Transferencia Bancaria</option>
+                            <option value="tarjeta_de_credito">Tarjeta de Crédito</option>
+                            <option value="efectivo">Efectivo</option>
+                        </select>
                     </div>
                     <div id="details">
                         <!-- Detalles de la transacción -->
@@ -45,18 +53,18 @@
 
             addDetailButton.addEventListener('click', function () {
                 const detail = `
-    <div class="form-row mt-3">
-        <div class="col">
-            <input type="text" name="item_name[]" class="form-control" placeholder="Nombre del ítem">
-        </div>
-        <div class="col">
-            <input type="number" name="quantity[]" class="form-control" placeholder="Cantidad">
-        </div>
-        <div class="col">
-            <input type="number" name="unit_price[]" class="form-control" placeholder="Precio Unitario">
-        </div>
-    </div>
-`;
+                    <div class="form-row mt-3">
+                        <div class="col">
+                            <input type="text" name="details[item_name][]" class="form-control" placeholder="Nombre del ítem">
+                        </div>
+                        <div class="col">
+                            <input type="number" name="details[quantity][]" class="form-control" placeholder="Cantidad">
+                        </div>
+                        <div class="col">
+                            <input type="number" name="details[unit_price][]" class="form-control" placeholder="Precio Unitario">
+                        </div>
+                    </div>
+                `;
 
                 detailsContainer.insertAdjacentHTML('beforeend', detail);
                 updateTotalAmount();
@@ -68,8 +76,8 @@
 
             function updateTotalAmount() {
                 let totalAmount = 0;
-                const unitPrices = document.querySelectorAll('input[name="unit_price[]"]');
-                const quantities = document.querySelectorAll('input[name="quantity[]"]');
+                const unitPrices = document.querySelectorAll('input[name="details[unit_price][]"]');
+                const quantities = document.querySelectorAll('input[name="details[quantity][]"]');
                 unitPrices.forEach((unitPrice, index) => {
                     const quantity = parseInt(quantities[index].value);
                     const price = parseFloat(unitPrice.value);

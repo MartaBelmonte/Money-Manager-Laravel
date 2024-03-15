@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB; // Importa la clase DB para utilizar transacciones
+use Illuminate\Support\Facades\DB; 
 use App\Models\Transaction;
 use App\Models\TransactionDetail;
 
@@ -29,7 +29,7 @@ class TransactionController extends Controller
             // Sumar los precios unitarios y la cantidad de los detalles de la transacción, si hay detalles disponibles
             if ($details->isNotEmpty()) {
                 foreach ($details as $detail) {
-                    $totalAmount += $detail->unit_price * $detail->quantity; // Corrección aquí
+                    $totalAmount += $detail->unit_price * $detail->quantity; 
                     $totalQuantity += $detail->quantity;
                 }
             }
@@ -50,82 +50,98 @@ class TransactionController extends Controller
     }
 
     public function store(Request $request)
-    {
-        // Valida los datos del formulario
-        $request->validate([
-            'amount' => 'required|numeric',
-            'category' => 'required',
-            'transfer_type' => 'required',
-            'details.*.item_name' => 'required',
-            'details.*.quantity' => 'required|numeric|min:1',
-            'details.*.unit_price' => 'required|numeric|min:0',
-            'type' => 'nullable',
-        ]);
+{
+    // Valida los datos del formulario
+    $request->validate([
+        'amount' => 'required|numeric',
+        'category' => 'required',
+        'transfer_type' => 'required',
+        'details.*.item_name' => 'required',
+        'details.*.quantity' => 'required|numeric|min:1',
+        'details.*.unit_price' => 'required|numeric|min:0',
+        'type' => 'nullable',
+    ]);
 
-        // Utilizamos una transacción para garantizar la integridad de los datos
-        DB::beginTransaction();
+    // Utilizamos una transacción para garantizar la integridad de los datos
+    DB::beginTransaction();
 
-        try {
-            // Crear una nueva instancia de Transaction
-            $transaction = new Transaction();
-            $transaction->amount = $request->input('amount', 0);
-            $transaction->category = $request->category;
-            $transaction->transfer_type = $request->transfer_type;
-            $transaction->type = $request->type;
-            $transaction->date = now();
-            $transaction->save();
+    try {
+        // Crear una nueva instancia de Transaction
+        $transaction = new Transaction();
+        $transaction->amount = $request->input('amount', 0);
+        $transaction->category = $request->category;
+        $transaction->transfer_type = $request->transfer_type;
+        $transaction->type = $request->type;
+        $transaction->date = now();
+        $transaction->save();
 
-            // Guardar los detalles de la transacción
-            $this->saveTransactionDetails($transaction, $request->details);
-
-            // Confirmar la transacción
-            DB::commit();
-            
-            // Redireccionar a la página principal con un mensaje de éxito
-            return redirect('/')->with('success', '¡Transacción creada con éxito!');
-        } catch (\Exception $e) {
-            // Si ocurre algún error, deshacemos la transacción y mostramos un mensaje de error
-            DB::rollBack();
-            return back()->withInput()->withErrors(['error' => 'Error al guardar la transacción.']);
+        // Guardar los detalles de la transacción
+        foreach ($request->details['item_name'] as $index => $itemName) {
+            $transactionDetail = new TransactionDetail();
+            $transactionDetail->transaction_id = $transaction->id; // Asignar el ID de la transacción principal
+            $transactionDetail->item_name = $itemName;
+            $transactionDetail->quantity = $request->details['quantity'][$index];
+            $transactionDetail->unit_price = $request->details['unit_price'][$index];
+            $transactionDetail->save();
         }
+
+        // Confirmar la transacción
+        DB::commit();
+        
+        // Redireccionar a la página principal con un mensaje de éxito
+        return redirect('/')->with('success', '¡Transacción creada con éxito!');
+    } catch (\Exception $e) {
+        // Si ocurre algún error, deshacemos la transacción y mostramos un mensaje de error
+        DB::rollBack();
+        return back()->withInput()->withErrors(['error' => 'Error al guardar la transacción.']);
     }
+}
+
 
     private function saveTransactionDetails(Transaction $transaction, $details)
-    {
-        // Verificar si se recibieron los detalles
-        if (isset($details['item_name']) && isset($details['quantity']) && isset($details['unit_price'])) {
-            // Obtener los detalles de los arreglos
-            $itemNames = $details['item_name'];
-            $quantities = $details['quantity'];
-            $unitPrices = $details['unit_price'];
+{
+    // Verificar si se recibieron los detalles
+    if (!empty($details)) {
+        // Obtener los detalles de los arreglos
+        $itemNames = $details['item_name'];
+        $quantities = $details['quantity'];
+        $unitPrices = $details['unit_price'];
 
-            // Verificar si los arreglos tienen la misma cantidad de elementos
-            if (count($itemNames) === count($quantities) && count($quantities) === count($unitPrices)) {
-                // Iterar sobre los detalles de la transacción y guardarlos en la base de datos
-                foreach ($itemNames as $index => $itemName) {
-                    // Crear una nueva instancia de TransactionDetail
-                    $transactionDetail = new TransactionDetail();
+        // Registro de depuración
+        \Log::info('Detalles recibidos:', [
+            'item_names' => $itemNames,
+            'quantities' => $quantities,
+            'unit_prices' => $unitPrices,
+        ]);
 
-                    // Establecer los atributos de TransactionDetail
-                    $transactionDetail->transaction_id = $transaction->id;
-                    $transactionDetail->item_name = $itemName;
-                    $transactionDetail->quantity = $quantities[$index];
-                    $transactionDetail->unit_price = $unitPrices[$index];
+        // Verificar si los arreglos tienen la misma cantidad de elementos
+        if (count($itemNames) === count($quantities) && count($quantities) === count($unitPrices)) {
+            // Iterar sobre los detalles de la transacción y guardarlos en la base de datos
+            foreach ($itemNames as $index => $itemName) {
+                // Crear una nueva instancia de TransactionDetail
+                $transactionDetail = new TransactionDetail();
 
-                    // Guardar el detalle de la transacción en la base de datos
-                    $transactionDetail->save();
+                // Establecer los atributos de TransactionDetail
+                $transactionDetail->transaction_id = $transaction->id;
+                $transactionDetail->item_name = $itemName;
+                $transactionDetail->quantity = $quantities[$index];
+                $transactionDetail->unit_price = $unitPrices[$index];
 
-                    // Registro de depuración
-                    \Log::info('Detalle de transacción guardado:', [
-                        'transaction_id' => $transaction->id,
-                        'item_name' => $itemName,
-                        'quantity' => $quantities[$index],
-                        'unit_price' => $unitPrices[$index],
-                    ]);
-                }
+                // Guardar el detalle de la transacción en la base de datos
+                $transactionDetail->save();
+
+                // Registro de depuración
+                \Log::info('Detalle de transacción guardado:', [
+                    'transaction_id' => $transaction->id,
+                    'item_name' => $itemName,
+                    'quantity' => $quantities[$index],
+                    'unit_price' => $unitPrices[$index],
+                ]);
             }
         }
     }
+}
+
 
 
     // Actualizar una transacción específica en la base de datos
@@ -151,7 +167,6 @@ class TransactionController extends Controller
         // Redirecciona a la página de edición con el mensaje de éxito
         return redirect()->route('transactions.edit', $id);
     }
-
 
 
     public function show($id)

@@ -14,7 +14,7 @@ class Transaction extends Model
     protected $fillable = ['date', 'description', 'amount', 'category', 'type', 'transfer_type'];
 
     protected $attributes = [
-        'description' => 'Descripción predeterminada', // Valor por defecto para 'description'
+        'description' => 'Descripción predeterminada', 
     ];
     
     public function details()
