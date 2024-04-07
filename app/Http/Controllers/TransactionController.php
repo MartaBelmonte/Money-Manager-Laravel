@@ -67,33 +67,28 @@ class TransactionController extends Controller
 
     // Utilizamos una transacción para garantizar la integridad de los datos
     DB::beginTransaction();
-    
 
     try {
-       // Crear una nueva instancia de Transaction
-$transaction = new Transaction();
-$transaction->amount = $request->input('amount', 0);
-$transaction->category = $request->category;
-$transaction->transfer_type = $request->transfer_type;
-$transaction->type = $request->type;
+        // Crear una nueva instancia de Transaction
+        $transaction = new Transaction();
+        $transaction->amount = $request->input('amount', 0);
+        $transaction->category = $request->category;
+        $transaction->transfer_type = $request->transfer_type;
+        $transaction->type = $request->type;
 
-// Convertir la fecha a un objeto DateTime
-$transaction->date = new DateTime($request->input('date')); // Asegúrate de que 'date' sea el nombre correcto del campo de fecha en tu formulario
+        // Convertir la fecha a un objeto DateTime
+        $transaction->date = new DateTime($request->input('date')); // Asegúrate de que 'date' sea el nombre correcto del campo de fecha en tu formulario
 
-// Guardar la transacción
-$transaction->save();
+        // Guardar la transacción
+        $transaction->save();
+
+        // Obtener los detalles del formulario
+        $details = $request->input('details');
 
 
         // Guardar los detalles de la transacción si existen
-        if (!empty($request->details)) {
-            foreach ($request->details['item_name'] as $index => $itemName) {
-                $transactionDetail = new TransactionDetail();
-                $transactionDetail->transaction_id = $transaction->id; // Asignar el ID de la transacción principal
-                $transactionDetail->item_name = $itemName;
-                $transactionDetail->quantity = $request->details['quantity'][$index];
-                $transactionDetail->unit_price = $request->details['unit_price'][$index];
-                $transactionDetail->save();
-            }
+        if (!empty($details)) {
+            $this->saveTransactionDetails($transaction, $details);
         }
 
         // Confirmar la transacción
@@ -109,30 +104,33 @@ $transaction->save();
     }
 }
 
-    private function saveTransactionDetails(Transaction $transaction, $details)
-    {
-        // Verificar si se recibieron los detalles
-        if (isset($details['item_name']) && isset($details['quantity']) && isset($details['unit_price'])) {
-            // Obtener los detalles de los arreglos
-            $itemNames = $details['item_name'];
-            $quantities = $details['quantity'];
-            $unitPrices = $details['unit_price'];
+private function saveTransactionDetails(Transaction $transaction, $details)
+{
+    // Agregar dd para verificar los detalles recibidos
+    dd($details);
 
-            // Verificar si los arreglos tienen la misma cantidad de elementos
-            if (count($itemNames) === count($quantities) && count($quantities) === count($unitPrices)) {
-                // Iterar sobre los detalles de la transacción y guardarlos en la base de datos
-                foreach ($itemNames as $index => $itemName) {
-                    // Crear una nueva instancia de TransactionDetail
-                    $transactionDetail = new TransactionDetail();
+    // Verificar si se recibieron los detalles
+    if (isset($details['item_name']) && isset($details['quantity']) && isset($details['unit_price'])) {
+        // Obtener los detalles de los arreglos
+        $itemNames = $details['item_name'];
+        $quantities = $details['quantity'];
+        $unitPrices = $details['unit_price'];
 
-                    // Establecer los atributos de TransactionDetail
-                    $transactionDetail->transaction_id = $transaction->id;
-                    $transactionDetail->item_name = $itemName;
-                    $transactionDetail->quantity = $quantities[$index];
-                    $transactionDetail->unit_price = $unitPrices[$index];
+        // Verificar si los arreglos tienen la misma cantidad de elementos
+        if (count($itemNames) === count($quantities) && count($quantities) === count($unitPrices)) {
+            // Iterar sobre los detalles de la transacción y guardarlos en la base de datos
+            foreach ($itemNames as $index => $itemName) {
+                // Crear una nueva instancia de TransactionDetail
+                $transactionDetail = new TransactionDetail();
 
-                    // Guardar el detalle de la transacción en la base de datos
-                    $transactionDetail->save();
+                // Establecer los atributos de TransactionDetail
+                $transactionDetail->transaction_id = $transaction->id;
+                $transactionDetail->item_name = $itemName;
+                $transactionDetail->quantity = $quantities[$index];
+                $transactionDetail->unit_price = $unitPrices[$index];
+
+                // Guardar el detalle de la transacción en la base de datos
+                $transactionDetail->save();
 
                 // Registro de depuración
                 \Log::info('Detalle de transacción guardado:', [
@@ -141,10 +139,20 @@ $transaction->save();
                     'quantity' => $quantities[$index],
                     'unit_price' => $unitPrices[$index],
                 ]);
+
+                // Agregar dd para verificar los datos antes de guardar
+                dd('Detalle guardado:', $transactionDetail);
             }
+        } else {
+            // Si los arreglos no tienen la misma cantidad de elementos
+            dd('Los arreglos de detalles no tienen la misma longitud:', count($itemNames), count($quantities), count($unitPrices));
         }
+    } else {
+        // Si los detalles no están presentes o incompletos
+        dd('Los detalles no están presentes o incompletos:', $details);
     }
 }
+
 
 // Actualizar una transacción específica en la base de datos
     public function update(Request $request, $id)

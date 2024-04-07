@@ -49,47 +49,48 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const addDetailButton = document.getElementById('addDetail');
-            const detailsContainer = document.getElementById('details');
+    document.addEventListener('DOMContentLoaded', function () {
+        const addDetailButton = document.getElementById('addDetail');
+        const detailsContainer = document.getElementById('details');
 
-            addDetailButton.addEventListener('click', function () {
-                const detail = `
-                    <div class="form-row mt-3">
-                        <div class="col">
-                            <input type="text" name="details[item_name][]" class="form-control" placeholder="Nombre del ítem">
-                        </div>
-                        <div class="col">
-                            <input type="number" name="details[quantity][]" class="form-control" placeholder="Cantidad">
-                        </div>
-                        <div class="col">
-                            <input type="number" name="details[unit_price][]" class="form-control" placeholder="Precio Unitario">
-                        </div>
+        addDetailButton.addEventListener('click', function () {
+            const detail = `
+                <div class="form-row mt-3">
+                    <div class="col">
+                        <input type="text" name="details[item_name][]" class="form-control" placeholder="Nombre del ítem">
                     </div>
-                `;
+                    <div class="col">
+                        <input type="number" name="details[quantity][]" class="form-control" placeholder="Cantidad">
+                    </div>
+                    <div class="col">
+                        <input type="number" name="details[unit_price][]" class="form-control" placeholder="Precio Unitario">
+                    </div>
+                </div>
+            `;
 
-                detailsContainer.insertAdjacentHTML('beforeend', detail);
-                updateTotalAmount();
-            });
-
-            detailsContainer.addEventListener('input', function () {
-                updateTotalAmount();
-            });
-
-            function updateTotalAmount() {
-                let totalAmount = 0;
-                const unitPrices = document.querySelectorAll('input[name="details[unit_price][]"]');
-                const quantities = document.querySelectorAll('input[name="details[quantity][]"]');
-                unitPrices.forEach((unitPrice, index) => {
-                    const quantity = parseInt(quantities[index].value);
-                    const price = parseFloat(unitPrice.value);
-                    if (!isNaN(quantity) && !isNaN(price)) {
-                        totalAmount += quantity * price;
-                    }
-                });
-                document.getElementById('amount').value = totalAmount.toFixed(2);
-            }
+            detailsContainer.insertAdjacentHTML('beforeend', detail);
+            updateTotalAmount();
         });
-    </script>
+
+        detailsContainer.addEventListener('input', function () {
+            updateTotalAmount();
+        });
+
+        function updateTotalAmount() {
+            let totalAmount = 0;
+            const unitPrices = document.querySelectorAll('input[name="details[unit_price][]"]');
+            const quantities = document.querySelectorAll('input[name="details[quantity][]"]');
+            unitPrices.forEach((unitPrice, index) => {
+                const quantity = parseInt(quantities[index].value);
+                const price = parseFloat(unitPrice.value);
+                if (!isNaN(quantity) && !isNaN(price)) {
+                    totalAmount += quantity * price;
+                }
+            });
+            document.getElementById('amount').value = totalAmount.toFixed(2);
+        }
+    });
+</script>
+
 </body>
 </html>
