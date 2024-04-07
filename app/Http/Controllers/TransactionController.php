@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use DateTime; 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB; 
 use App\Models\Transaction;
@@ -49,7 +50,7 @@ class TransactionController extends Controller
         return view('create');
     }
 
-    public function store(Request $request)
+   public function store(Request $request)
 {
     // Valida los datos del formulario
     $request->validate([
@@ -64,39 +65,47 @@ class TransactionController extends Controller
 
     // Utilizamos una transacción para garantizar la integridad de los datos
     DB::beginTransaction();
+    
 
     try {
-        // Crear una nueva instancia de Transaction
-        $transaction = new Transaction();
-        $transaction->amount = $request->input('amount', 0);
-        $transaction->category = $request->category;
-        $transaction->transfer_type = $request->transfer_type;
-        $transaction->type = $request->type;
-        $transaction->date = now();
-        $transaction->save();
+       // Crear una nueva instancia de Transaction
+$transaction = new Transaction();
+$transaction->amount = $request->input('amount', 0);
+$transaction->category = $request->category;
+$transaction->transfer_type = $request->transfer_type;
+$transaction->type = $request->type;
 
-        // Guardar los detalles de la transacción
-        foreach ($request->details['item_name'] as $index => $itemName) {
-            $transactionDetail = new TransactionDetail();
-            $transactionDetail->transaction_id = $transaction->id; // Asignar el ID de la transacción principal
-            $transactionDetail->item_name = $itemName;
-            $transactionDetail->quantity = $request->details['quantity'][$index];
-            $transactionDetail->unit_price = $request->details['unit_price'][$index];
-            $transactionDetail->save();
+// Convertir la fecha a un objeto DateTime
+$transaction->date = new DateTime($request->input('date')); // Asegúrate de que 'date' sea el nombre correcto del campo de fecha en tu formulario
+
+// Guardar la transacción
+$transaction->save();
+
+
+        // Guardar los detalles de la transacción si existen
+        if (!empty($request->details)) {
+            foreach ($request->details['item_name'] as $index => $itemName) {
+                $transactionDetail = new TransactionDetail();
+                $transactionDetail->transaction_id = $transaction->id; // Asignar el ID de la transacción principal
+                $transactionDetail->item_name = $itemName;
+                $transactionDetail->quantity = $request->details['quantity'][$index];
+                $transactionDetail->unit_price = $request->details['unit_price'][$index];
+                $transactionDetail->save();
+            }
         }
 
         // Confirmar la transacción
         DB::commit();
         
-        // Redireccionar a la página principal con un mensaje de éxito
-        return redirect('/')->with('success', '¡Transacción creada con éxito!');
+        // Redireccionar al índice de transacciones con un mensaje de éxito
+        return redirect()->route('transactions.index')->with('success', '¡Transacción creada con éxito!');
     } catch (\Exception $e) {
         // Si ocurre algún error, deshacemos la transacción y mostramos un mensaje de error
         DB::rollBack();
+        dd($e->getMessage()); // Agrega esta línea para mostrar el mensaje de error
         return back()->withInput()->withErrors(['error' => 'Error al guardar la transacción.']);
     }
 }
-
 
     private function saveTransactionDetails(Transaction $transaction, $details)
 {
@@ -142,9 +151,7 @@ class TransactionController extends Controller
     }
 }
 
-
-
-    // Actualizar una transacción específica en la base de datos
+// Actualizar una transacción específica en la base de datos
     public function update(Request $request, $id)
     {
         // Encuentra la transacción por su ID
@@ -167,6 +174,7 @@ class TransactionController extends Controller
         // Redirecciona a la página de edición con el mensaje de éxito
         return redirect()->route('transactions.edit', $id);
     }
+
 
 
     public function show($id)

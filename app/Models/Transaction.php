@@ -6,10 +6,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\User;
 
-
 class Transaction extends Model
 {
     use HasFactory;
+
+    protected $table = 'transactions'; // Nombre real de la tabla de transacciones
 
     protected $fillable = ['date', 'description', 'amount', 'category', 'type', 'transfer_type'];
 

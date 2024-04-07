@@ -17,7 +17,7 @@
                         <table class="table table-striped">
                             <thead>
                                 <tr>
-                                    <th>Nombre Completo</th>
+                                    <th>Fecha de Transacción</th>
                                     <th>Cantidad Total</th>
                                     <th>Categoría</th>
                                     <th>Tipo de Transferencia</th>
@@ -27,7 +27,13 @@
                             <tbody>
                                 @foreach ($transactions as $transaction)
                                     <tr>
-                                        <td>{{ $transaction->full_name }}</td>
+                                        <td>
+                                            @if ($transaction->date instanceof DateTime)
+                                                {{ $transaction->date->format('Y-m-d') }}
+                                            @else
+                                                {{ $transaction->date }}
+                                            @endif
+                                        </td>
                                         <td>{{ $transaction->amount }}</td>
                                         <td>{{ $transaction->category }}</td>
                                         <td>{{ $transaction->transfer_type }}</td>
