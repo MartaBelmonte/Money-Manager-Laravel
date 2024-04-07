@@ -26,31 +26,31 @@
                             </thead>
                             <tbody>
                                 @foreach ($transactions as $transaction)
-                                    <tr>
-                                        <td>{{ $transaction->full_name }}</td>
-                                        <td>{{ $transaction->amount }}</td>
-                                        <td>{{ $transaction->category }}</td>
-                                        <td>{{ $transaction->transfer_type }}</td>
-                                        <td>
-                                            <div class="dropdown">
-                                                <button class="btn btn-secondary dropdown-toggle" type="button" id="actionsDropdown{{ $transaction->id }}" data-bs-toggle="dropdown" aria-expanded="false">
-                                                    Acciones
-                                                </button>
-                                                <ul class="dropdown-menu" aria-labelledby="actionsDropdown{{ $transaction->id }}">
-                                                    <li><a class="dropdown-item" href="{{ route('transactions.show', $transaction->id) }}">Ver Detalles</a></li>
-                                                    <li><a class="dropdown-item" href="{{ route('transactions.edit', $transaction->id) }}">Editar</a></li>
-                                                    <li>
-                                                        <form action="{{ route('transactions.delete', $transaction->id) }}" method="POST">
-                                                            @csrf
-                                                            @method('DELETE')
-                                                            <button type="submit" class="dropdown-item btn btn-danger">Eliminar</button>
-                                                        </form>
-                                                    </li>
-                                                </ul>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                @endforeach
+    <tr>
+        <td>@isset($transaction->user) {{ $transaction->user->name }} @endisset</td>
+        <td>{{ $transaction->amount }}</td>
+        <td>{{ $transaction->category }}</td>
+        <td>{{ $transaction->transfer_type }}</td>
+        <td>
+            <div class="dropdown">
+                <button class="btn btn-secondary dropdown-toggle" type="button" id="actionsDropdown{{ $transaction->id }}" data-bs-toggle="dropdown" aria-expanded="false">
+                    Acciones
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="actionsDropdown{{ $transaction->id }}">
+                    <li><a class="dropdown-item" href="{{ route('transactions.show', $transaction->id) }}">Ver Detalles</a></li>
+                    <li><a class="dropdown-item" href="{{ route('transactions.edit', $transaction->id) }}">Editar</a></li>
+                    <li>
+                        <form action="{{ route('transactions.delete', $transaction->id) }}" method="POST">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="dropdown-item btn btn-danger">Eliminar</button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+        </td>
+    </tr>
+@endforeach
                             </tbody>
                         </table>
                     </div>
@@ -63,5 +63,8 @@
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    
+</script>
 </body>
 </html>
