@@ -40,8 +40,10 @@ class TransactionController extends Controller
             $transaction->totalQuantity = $totalQuantity;
         }
 
-        // Pasar los datos a la vista
-        return view('index', compact('transactions'));
+        // Pasar los datos a la vista  
+        $transactions = Transaction::all();
+        return view('index', ['transactions' => $transactions]);
+
     }
 
     // Mostrar el formulario para crear una nueva transacción
@@ -108,36 +110,29 @@ $transaction->save();
 }
 
     private function saveTransactionDetails(Transaction $transaction, $details)
-{
-    // Verificar si se recibieron los detalles
-    if (!empty($details)) {
-        // Obtener los detalles de los arreglos
-        $itemNames = $details['item_name'];
-        $quantities = $details['quantity'];
-        $unitPrices = $details['unit_price'];
+    {
+        // Verificar si se recibieron los detalles
+        if (isset($details['item_name']) && isset($details['quantity']) && isset($details['unit_price'])) {
+            // Obtener los detalles de los arreglos
+            $itemNames = $details['item_name'];
+            $quantities = $details['quantity'];
+            $unitPrices = $details['unit_price'];
 
-        // Registro de depuración
-        \Log::info('Detalles recibidos:', [
-            'item_names' => $itemNames,
-            'quantities' => $quantities,
-            'unit_prices' => $unitPrices,
-        ]);
+            // Verificar si los arreglos tienen la misma cantidad de elementos
+            if (count($itemNames) === count($quantities) && count($quantities) === count($unitPrices)) {
+                // Iterar sobre los detalles de la transacción y guardarlos en la base de datos
+                foreach ($itemNames as $index => $itemName) {
+                    // Crear una nueva instancia de TransactionDetail
+                    $transactionDetail = new TransactionDetail();
 
-        // Verificar si los arreglos tienen la misma cantidad de elementos
-        if (count($itemNames) === count($quantities) && count($quantities) === count($unitPrices)) {
-            // Iterar sobre los detalles de la transacción y guardarlos en la base de datos
-            foreach ($itemNames as $index => $itemName) {
-                // Crear una nueva instancia de TransactionDetail
-                $transactionDetail = new TransactionDetail();
+                    // Establecer los atributos de TransactionDetail
+                    $transactionDetail->transaction_id = $transaction->id;
+                    $transactionDetail->item_name = $itemName;
+                    $transactionDetail->quantity = $quantities[$index];
+                    $transactionDetail->unit_price = $unitPrices[$index];
 
-                // Establecer los atributos de TransactionDetail
-                $transactionDetail->transaction_id = $transaction->id;
-                $transactionDetail->item_name = $itemName;
-                $transactionDetail->quantity = $quantities[$index];
-                $transactionDetail->unit_price = $unitPrices[$index];
-
-                // Guardar el detalle de la transacción en la base de datos
-                $transactionDetail->save();
+                    // Guardar el detalle de la transacción en la base de datos
+                    $transactionDetail->save();
 
                 // Registro de depuración
                 \Log::info('Detalle de transacción guardado:', [
@@ -153,27 +148,30 @@ $transaction->save();
 
 // Actualizar una transacción específica en la base de datos
     public function update(Request $request, $id)
-    {
-        // Encuentra la transacción por su ID
-        $transaction = Transaction::findOrFail($id);
+{
+    // Valida los datos del formulario de actualización
+    $request->validate([
+        'amount' => 'required|numeric',
+        'category' => 'required',
+        'transfer_type' => 'required',
+        'date' => 'required|date',
+    ]);
 
-        // Actualiza la transacción principal
-        $transaction->update($request->except('details'));
+    // Encuentra la transacción por su ID
+    $transaction = Transaction::findOrFail($id);
 
-        // Actualiza los detalles de la transacción si se proporcionan datos de detalle
-        if ($request->filled('details')) {
-            foreach ($request->details as $detailId => $detailData) {
-                $detail = TransactionDetail::findOrFail($detailId);
-                $detail->update($detailData);
-            }
-        }
+    // Actualiza los campos de la transacción
+    $transaction->amount = $request->input('amount');
+    $transaction->category = $request->input('category');
+    $transaction->transfer_type = $request->input('transfer_type');
+    $transaction->date = $request->input('date');
 
-        // Establece el mensaje de sesión flash solo si se actualiza exitosamente
-        session()->flash('status', 'Los cambios se han guardado correctamente.');
+    // Guarda los cambios en la base de datos
+    $transaction->save();
 
-        // Redirecciona a la página de edición con el mensaje de éxito
-        return redirect()->route('transactions.edit', $id);
-    }
+    // Redirecciona de vuelta a la página de transacciones con un mensaje de éxito
+    return redirect('/transactions')->with('success', 'Transacción actualizada exitosamente.');
+}
 
 
 

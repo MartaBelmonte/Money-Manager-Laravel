@@ -36,8 +36,10 @@
                     <div id="details">
                         <!-- Detalles de la transacción -->
                     </div>
-                    <button type="button" id="addDetail" class="btn btn-primary">Agregar Detalle</button>
-                    <button type="submit" class="btn btn-success">Guardar Transacción</button>
+                    <div class="d-flex justify-content-between">
+                        <button type="button" id="addDetail" class="btn btn-primary">Agregar Detalle</button>
+                        <button type="submit" class="btn btn-success">Guardar Transacción</button>
+                    </div>
                 </form>
             </div>
         </div>
@@ -85,7 +87,6 @@
                         totalAmount += quantity * price;
                     }
                 });
-                console.log("Total amount:", totalAmount);
                 document.getElementById('amount').value = totalAmount.toFixed(2);
             }
         });
