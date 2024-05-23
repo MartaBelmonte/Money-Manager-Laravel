@@ -52,8 +52,11 @@ class TransactionController extends Controller
         return view('create');
     }
 
-   public function store(Request $request)
+public function store(Request $request)
 {
+    // Agregar dd para verificar los datos recibidos del formulario
+    dd($request->all());
+    
     // Valida los datos del formulario
     $request->validate([
         'amount' => 'required|numeric',
@@ -64,7 +67,7 @@ class TransactionController extends Controller
         'details.*.unit_price' => 'required|numeric|min:0',
         'type' => 'nullable',
     ]);
-
+    
     // Utilizamos una transacción para garantizar la integridad de los datos
     DB::beginTransaction();
 
@@ -85,12 +88,30 @@ class TransactionController extends Controller
         // Obtener los detalles del formulario
         $details = $request->input('details');
 
+        // Agregar dd para verificar los detalles antes de guardar
+        dd($details);
 
         // Guardar los detalles de la transacción si existen
-        if (!empty($details)) {
-            $this->saveTransactionDetails($transaction, $details);
-        }
+if (!empty($details)) {
+    foreach ($details['item_name'] as $index => $itemName) {
+        // Crear una nueva instancia de TransactionDetail
+        $transactionDetail = new TransactionDetail();
 
+        // Establecer los atributos de TransactionDetail
+        $transactionDetail->transaction_id = $transaction->id;
+        $transactionDetail->item_name = $itemName;
+        $transactionDetail->quantity = $details['quantity'][$index];
+        $transactionDetail->unit_price = $details['unit_price'][$index];
+
+        // Guardar el detalle de la transacción en la base de datos
+        $transactionDetail->save();
+
+        // Agregar dd para verificar los detalles después de guardar
+        dd($transactionDetail); // Este dd debería mostrar los detalles después de guardarlos en la base de datos
+    }
+}
+// Agregar dd para verificar los detalles después de guardar
+    dd(TransactionDetail::all());
         // Confirmar la transacción
         DB::commit();
         
@@ -103,6 +124,10 @@ class TransactionController extends Controller
         return back()->withInput()->withErrors(['error' => 'Error al guardar la transacción.']);
     }
 }
+
+
+
+
 
 private function saveTransactionDetails(Transaction $transaction, $details)
 {
