@@ -10,7 +10,7 @@ class Transaction extends Model
 {
     use HasFactory;
 
-    protected $table = 'transactions'; // Nombre real de la tabla de transacciones
+    protected $table = 'transactions'; 
 
     protected $fillable = ['date', 'description', 'amount', 'category', 'type', 'transfer_type'];
 

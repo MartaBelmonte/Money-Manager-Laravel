@@ -54,23 +54,24 @@
         const detailsContainer = document.getElementById('details');
 
         addDetailButton.addEventListener('click', function () {
-            const detail = `
-                <div class="form-row mt-3">
-                    <div class="col">
-                        <input type="text" name="details[item_name][]" class="form-control" placeholder="Nombre del ítem">
-                    </div>
-                    <div class="col">
-                        <input type="number" name="details[quantity][]" class="form-control" placeholder="Cantidad">
-                    </div>
-                    <div class="col">
-                        <input type="number" name="details[unit_price][]" class="form-control" placeholder="Precio Unitario">
-                    </div>
-                </div>
-            `;
+     const detail = `
+         <div class="form-row mt-3">
+             <div class="col">
+                 <input type="text" name="details[item_name][]" class="form-control" placeholder="Nombre del ítem">
+             </div>
+             <div class="col">
+                 <input type="number" name="details[quantity][]" class="form-control" placeholder="Cantidad">
+             </div>
+             <div class="col">
+                 <input type="number" name="details[unit_price][]" class="form-control" placeholder="Precio Unitario">
+             </div>
+         </div>
+     `;
+     console.log('Detail:', detail); // Agrega esta línea para depurar
+     detailsContainer.insertAdjacentHTML('beforeend', detail);
+     updateTotalAmount();
+ });
 
-            detailsContainer.insertAdjacentHTML('beforeend', detail);
-            updateTotalAmount();
-        });
 
         detailsContainer.addEventListener('input', function () {
             updateTotalAmount();
@@ -91,6 +92,5 @@
         }
     });
 </script>
-
 </body>
 </html>
