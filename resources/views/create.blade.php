@@ -67,7 +67,7 @@
              </div>
          </div>
      `;
-     console.log('Detail:', detail); // Agrega esta línea para depurar
+     console.log('Detail:', detail); 
      detailsContainer.insertAdjacentHTML('beforeend', detail);
      updateTotalAmount();
  });
