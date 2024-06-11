@@ -11,7 +11,7 @@
     <div class="container mt-5">
         <div class="card">
             <div class="card-body">
-                <h1 class="card-title">Editar Transacción</h1>
+                <h1 class="text-center card-title">Editar Transacción</h1>
                 <form method="POST" action="/transactions/{{ $transaction->id }}">
                     @csrf
                     @method('PUT')
